@@ -3832,3 +3832,10 @@
     line-height: 1.55;
   }
 }
+
+/* Mobile: the loading screen never scrolls or pans */
+@media (max-width: 767px) {
+  .loading-screen {
+    touch-action: none;
+  }
+}

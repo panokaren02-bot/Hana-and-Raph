@@ -101,18 +101,18 @@ export default async function GalleryPage() {
   const gallery = siteConfig.gallery
   const decos = gallery.decos
   const { desktop, mobile } = await fetchGalleryImages()
-  const images = [
-    ...desktop.map((image) => ({
-      ...image,
-      category: "desktop" as const,
-      orientation: (image.width >= image.height ? "landscape" : "portrait") as "portrait" | "landscape",
-    })),
-    ...mobile.map((image) => ({
-      ...image,
-      category: "mobile" as const,
-      orientation: (image.width >= image.height ? "landscape" : "portrait") as "portrait" | "landscape",
-    })),
-  ]
+  // Only public/desktop-background (landscape) + public/mobile-background-new (portrait),
+  // interleaved so the masonry columns mix wide and tall shots evenly
+  const tag = (category: "desktop" | "mobile") => (image: (typeof desktop)[number]) => ({
+    ...image,
+    category,
+    orientation: (image.width >= image.height ? "landscape" : "portrait") as "portrait" | "landscape",
+  })
+  const wide = desktop.map(tag("desktop"))
+  const tall = mobile.map(tag("mobile"))
+  const images = Array.from({ length: Math.max(wide.length, tall.length) }, (_, i) => [wide[i], tall[i]])
+    .flat()
+    .filter((image): image is (typeof wide)[number] => Boolean(image))
 
   return (
     <main

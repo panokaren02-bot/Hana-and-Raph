@@ -1,14 +1,16 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { motion } from "motion/react"
 import { Cinzel } from "next/font/google"
 import localFont from "next/font/local"
-import { Instagram, Facebook, Twitter, Share2, Copy, Download, Check } from "lucide-react"
+import { Instagram, Facebook, Twitter, Share2, Copy, Download, Check, BookOpen } from "lucide-react"
 import { useQrColors } from "@/hooks/use-css-color"
 import { QRCodeCanvas } from "qrcode.react"
 import { useSiteConfig } from "@/hooks/use-site-config"
 import { layeredSectionTitleSize, sectionType } from "@/lib/section-typography"
 import Image from "next/image"
+import { CrossfadeImages } from "@/components/crossfade-images"
 
 const cinzel = Cinzel({
   subsets: ["latin"],
@@ -36,6 +38,11 @@ const OUTSIDE_TITLE_SHADOW =
   "0 1px 0 color-mix(in srgb, var(--color-welcome-navy) 45%, transparent), 0 2px 10px color-mix(in srgb, var(--color-welcome-navy) 40%, transparent), 0 8px 28px color-mix(in srgb, var(--color-welcome-navy) 30%, transparent)"
 const READABLE_SHADOW =
   "0 1px 2px color-mix(in srgb, var(--color-welcome-navy) 55%, transparent), 0 2px 10px color-mix(in srgb, var(--color-welcome-navy) 40%, transparent)"
+// Text over the moving verse photos: tighter dark edge + wide halo
+const PHOTO_TEXT_SHADOW =
+  "0 1px 1px rgb(8 14 24 / 95%), 0 1px 4px rgb(8 14 24 / 85%), 0 3px 12px rgb(8 14 24 / 70%), 0 8px 30px rgb(8 14 24 / 55%)"
+// Verse accents (icon, quote marks, reference): a warm light tone that holds up on the dark glass
+const VERSE_ACCENT = "color-mix(in srgb, var(--color-motif-silver) 55%, #FFFFFF)"
 
 // Card palette — white paper, navy headings, body-blue text, dusty-blue buttons.
 const TEAL = "var(--color-welcome-navy)"
@@ -177,6 +184,164 @@ const SOCIAL = {
   tiktok: { Icon: Share2, label: "TikTok" },
   twitter: { Icon: Twitter, label: "Twitter" },
 } as const
+
+function usePrefersReducedMotion() {
+  const [reduce, setReduce] = useState(false)
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)")
+    setReduce(mq.matches)
+    const onChange = () => setReduce(mq.matches)
+    mq.addEventListener("change", onChange)
+    return () => mq.removeEventListener("change", onChange)
+  }, [])
+  return reduce
+}
+
+const VERSE_MS = 7000
+
+type Verse = { text: string; reference: string }
+
+/**
+ * Bible verse panel: couple photos cross-fade (layered, with a slow drift) behind a rotating
+ * verse. Dots jump to a verse; animation stops for reduced-motion users.
+ */
+function VersePanel({ eyebrow, images, quotes }: { eyebrow: string; images: string[]; quotes: Verse[] }) {
+  const [imageIdx, setImageIdx] = useState(0)
+  const [verseIdx, setVerseIdx] = useState(0)
+  const reduceMotion = usePrefersReducedMotion()
+  // Restarts whenever the verse changes, so picking a dot gives it a full turn
+  useEffect(() => {
+    if (reduceMotion) return
+    const timer = setTimeout(() => {
+      setImageIdx((i) => (i + 1) % images.length)
+      setVerseIdx((v) => (v + 1) % quotes.length)
+    }, VERSE_MS)
+    return () => clearTimeout(timer)
+  }, [verseIdx, reduceMotion, images.length, quotes.length])
+
+  return (
+    <figure
+      className="relative isolate mt-8 overflow-hidden rounded-[1.5rem] sm:mt-10 sm:rounded-[1.75rem] md:mt-12"
+      style={{
+        border: "1px solid rgb(255 255 255 / 55%)",
+        boxShadow:
+          "0 0 0 5px rgb(255 255 255 / 20%), 0 28px 60px -30px color-mix(in srgb, var(--color-welcome-navy) 70%, transparent)",
+      }}
+    >
+      {/* Cross-fading photo backdrop */}
+      <div className="absolute inset-0 -z-10" aria-hidden>
+        <CrossfadeImages
+          images={images.map((src) => encodeURI(src))}
+          active={imageIdx}
+          sizes="(max-width: 1152px) 100vw, 1100px"
+          className="object-cover"
+          reduceMotion={reduceMotion}
+        />
+        {/* Full-cover blue gradient: deepest through the middle where the heading and verse sit */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(180deg, rgb(24 46 76 / 55%) 0%, rgb(20 40 68 / 72%) 30%, rgb(20 40 68 / 76%) 60%, rgb(24 46 76 / 58%) 100%)",
+          }}
+        />
+      </div>
+
+      <div className="flex min-h-[24rem] items-center justify-center px-4 py-10 sm:min-h-[26rem] sm:px-10 sm:py-14 md:min-h-[30rem] md:px-16">
+        <div className="flex w-full max-w-3xl flex-col items-center text-center">
+          {/* Fixed header — stays put while the verse below changes */}
+          <span
+            className="flex h-10 w-10 items-center justify-center rounded-full sm:h-11 sm:w-11"
+            style={{
+              background: "rgb(16 28 44 / 45%)",
+              boxShadow: "inset 0 0 0 1px rgb(255 255 255 / 60%), 0 4px 14px rgb(8 14 24 / 45%)",
+            }}
+          >
+            <BookOpen className="h-[18px] w-[18px] sm:h-5 sm:w-5" style={{ color: VERSE_ACCENT }} aria-hidden />
+          </span>
+          <p
+            className={`${cinzel.className} mt-4 text-[0.75rem] font-semibold uppercase tracking-[0.24em] sm:text-[0.8125rem] sm:tracking-[0.3em]`}
+            style={{ color: "#FFFFFF", textShadow: PHOTO_TEXT_SHADOW }}
+          >
+            {eyebrow}
+          </p>
+          <div className="mt-4 sm:mt-5">
+            <OutsideDivider />
+          </div>
+
+          {/* Every verse shares one grid cell, so the card is always as tall as the longest
+              verse and nothing above shifts; the verses cross-fade in place. */}
+          <div className="mt-6 grid w-full sm:mt-7" aria-live="polite">
+            {quotes.map((q, i) => {
+              const isActive = i === verseIdx
+              return (
+                <motion.div
+                  key={q.reference}
+                  className="flex flex-col items-center justify-center [grid-area:1/1]"
+                  aria-hidden={!isActive}
+                  initial={false}
+                  animate={
+                    isActive
+                      ? { opacity: 1, y: 0, filter: "blur(0px)" }
+                      : { opacity: 0, y: 8, filter: "blur(4px)" }
+                  }
+                  transition={
+                    isActive
+                      ? { duration: 0.9, delay: 0.3, ease: [0.22, 1, 0.36, 1] }
+                      : { duration: 0.5, ease: "easeIn" }
+                  }
+                  style={{ pointerEvents: isActive ? "auto" : "none" }}
+                >
+                  <blockquote
+                    className="font-goudy-italic mx-auto max-w-2xl text-[1.2rem] font-semibold leading-relaxed sm:text-[1.45rem] md:text-[1.65rem]"
+                    style={{ color: "#FFFFFF", textShadow: PHOTO_TEXT_SHADOW }}
+                  >
+                    <span aria-hidden className={`${theSeasons.className} mr-1 align-[-0.2em] text-[1.6em] leading-none`} style={{ color: VERSE_ACCENT }}>
+                      “
+                    </span>
+                    {q.text}
+                    <span aria-hidden className={`${theSeasons.className} ml-1 align-[-0.2em] text-[1.6em] leading-none`} style={{ color: VERSE_ACCENT }}>
+                      ”
+                    </span>
+                  </blockquote>
+                  <figcaption
+                    className={`${cinzel.className} mt-5 text-[0.75rem] font-semibold uppercase tracking-[0.22em] sm:mt-6 sm:text-[0.8125rem]`}
+                    style={{ color: VERSE_ACCENT, textShadow: PHOTO_TEXT_SHADOW }}
+                  >
+                    — {q.reference}
+                  </figcaption>
+                </motion.div>
+              )
+            })}
+          </div>
+
+          {quotes.length > 1 && (
+            <div className="mt-8 flex items-center gap-2 sm:mt-9" role="tablist" aria-label="Choose a verse">
+              {quotes.map((q, i) => (
+                <button
+                  key={q.reference}
+                  type="button"
+                  role="tab"
+                  aria-selected={i === verseIdx}
+                  aria-label={q.reference}
+                  onClick={() => {
+                    setVerseIdx(i)
+                    setImageIdx((idx) => (idx + 1) % images.length)
+                  }}
+                  className="h-1.5 rounded-full transition-all duration-500"
+                  style={{
+                    width: i === verseIdx ? "1.5rem" : "0.375rem",
+                    background: i === verseIdx ? "var(--color-motif-accent)" : "rgb(255 255 255 / 55%)",
+                  }}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </figure>
+  )
+}
 
 export function SnapShare() {
   const { fg: qrFg, bg: qrBg } = useQrColors() // --color-qr-fg / --color-qr-bg in globals.css
@@ -511,6 +676,10 @@ export function SnapShare() {
             {content.closingTag}
           </p>
         </div>
+
+        {content.verses?.show && content.verses.images.length > 0 && content.verses.quotes.length > 0 ? (
+          <VersePanel eyebrow={content.verses.eyebrow} images={content.verses.images} quotes={content.verses.quotes} />
+        ) : null}
       </div>
     </section>
   )

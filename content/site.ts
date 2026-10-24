@@ -285,7 +285,7 @@ const ATTIRE = {
 // NEXT_PUBLIC_SITE_URL (env) overrides this when set.
 const SITE_URL = "https://raph-and-hana.weddinginvitationrsvp.com/"
 // Image shown when the link is shared (Facebook, Messenger, Viber, X, …) — 1200×630 JPG in /public
-const LINK_PREVIEW_IMAGE = "/Details/LinkPreview.png"
+const LINK_PREVIEW_IMAGE = "/Details/linkp.png"
 
 // Site address with env override applied and no trailing slash — no need to edit
 export const canonicalSiteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? SITE_URL).replace(/\/$/, "")
@@ -410,6 +410,12 @@ export const siteConfig = {
       "/frontboxes/couple (3).webp",
     ],
     dateLabels: ["Month", "Day", "Year"],
+    // Polaroids that rise out of the envelope next to the invitation card (components/loader/Hero.tsx).
+    // Shown in both "plain" and "photos" display. Two photos = one each side; [] = no envelope photos in plain mode.
+    envelopePhotos: [
+      "/mobile-background-new/couples (3).jpeg",
+      "/mobile-background-new/couples (8).jpeg",
+    ],
     // Plain mode invitation card — classic invitation wording around the couple's names ("" to hide a line)
     plainInvite: {
       ornament: DECOR.headerOrnament,
@@ -444,7 +450,7 @@ export const siteConfig = {
     // YouTube video ID — the part after "watch?v=" (or after "youtu.be/")
     youtubeId: "ojZmsQf8_AM",
     // Cover image shown before the video plays
-    thumbnail: "/Details/thumbnail.jpg",
+    thumbnail: "/desktop-background/couples (2).jpeg",
     thumbnailAlt: `${COUPLE_LABEL} — video cover`,
     playLabel: "Play our video",
   },
@@ -534,14 +540,21 @@ export const siteConfig = {
     buttonText: "View Full Gallery",
     buttonHref: "/gallery",
     decos: { ...SECTION_DECOS },
-    // Uses COUPLE_PHOTOS; replace with your own list if the gallery should differ.
-    // text → caption used as the photo's description
+    // Photos from public/mobile-background-new (portrait 9:16).
+    // text → caption used as the photo's description (leave "" for none)
     images: [
-      { image: "/mobile-background/Alpine Lake Proposal Under Open Skies.png", text: "Our first date" },
-      { image: "/mobile-background/Cozy Café Selfie with Friends.png", text: "Officially together" },
-      { image: "/mobile-background/Dreamy Forest Engagement Portrait.png", text: "Mt. Pinatubo Crater Lake" },
-      { image: "/mobile-background/Joyful Car Selfie with Young Couple.png", text: "The proposal" },
-      { image: "/mobile-background/Welcome to Mt. Pinatubo Crater Lake.png", text: "Prenup" },
+      { image: "/mobile-background-new/couples (1).jpeg", text: "" },
+      { image: "/mobile-background-new/couples (2).jpeg", text: "" },
+      { image: "/mobile-background-new/couples (3).jpeg", text: "" },
+      { image: "/mobile-background-new/couples (4).jpeg", text: "" },
+      { image: "/mobile-background-new/couples (5).jpeg", text: "" },
+      { image: "/mobile-background-new/couples (6).jpeg", text: "" },
+      { image: "/mobile-background-new/couples (7).jpeg", text: "" },
+      { image: "/mobile-background-new/couples (8).jpeg", text: "" },
+      { image: "/mobile-background-new/couples (9).jpeg", text: "" },
+      { image: "/mobile-background-new/couples (10).jpeg", text: "" },
+      { image: "/mobile-background-new/couples (11).jpeg", text: "" },
+      { image: "/mobile-background-new/couples (12).jpeg", text: "" },
     ],
   },
   // Event details section (components/sections/details.tsx)
@@ -1483,16 +1496,17 @@ Now, as they prepare to say yes before God and the people they love most, Cather
   seeYouThere: {
     titleLine1: "See you",
     titleLine2: "there!",
-    // Photos mode
-    photo: COUPLE_PHOTOS[4],
+    eyebrow: "Until we meet",
+    script: "with love, {couple}",
+    message: "We can't wait to celebrate this beautiful day with you.",
+    // Shown in every display mode: three side-by-side panels on desktop, a cross-fading
+    // full-screen photo on mobile. Portrait (9:16) photos fit best.
+    photos: [
+      "/mobile-background-new/couples (3).jpeg",
+      "/mobile-background-new/couples (10).jpeg",
+      "/mobile-background-new/couples (8).jpeg",
+    ],
     photoAlt: "{couple}",
-    // Plain mode
-    plain: {
-      eyebrow: "Until we meet",
-      script: "with love, {couple}",
-      message: "We can't wait to celebrate this beautiful day with you.",
-      decos: { ...CORNER_DECOS, footerVine: DECOR.footerVine },
-    },
   },
   // Footer (components/sections/footer.tsx).
   // {couple} → "Groom & Bride" nicknames, {year} → current year. Date comes from ceremony, deadline from details.rsvp.
@@ -1617,6 +1631,33 @@ Now, as they prepare to say yes before God and the people they love most, Cather
     closing:
       "Thank you for helping make {couple}'s wedding celebration memorable. Your photos and messages create beautiful memories we will treasure for a lifetime.",
     closingTag: "Thank you for sharing the joy",
+    // Bible verse panel at the bottom; photos cross-fade behind the verses
+    verses: {
+      show: true,
+      eyebrow: "Words We Hold Dear",
+      images: [
+        "/desktop-background/couples (1).jpeg",
+        "/desktop-background/couples (2).jpeg",
+        "/desktop-background/couples (3).jpeg",
+        "/desktop-background/couples (4).jpeg",
+        "/desktop-background/couples (5).jpeg",
+        "/desktop-background/couples (6).jpeg",
+        "/desktop-background/couples (7).jpeg",
+        "/desktop-background/couples (8).jpeg",
+        "/desktop-background/couples (9).jpeg",
+        "/desktop-background/couples (10).jpeg",
+        "/desktop-background/couples (11).jpeg",
+        "/desktop-background/couples (12).jpeg",
+        "/desktop-background/couples (13).jpeg",
+      ],
+      quotes: [
+        { text: "Love is patient, love is kind. It always protects, always trusts, always hopes, always perseveres.", reference: "1 Corinthians 13:4, 7" },
+        { text: "Therefore what God has joined together, let no one separate.", reference: "Mark 10:9" },
+        { text: "A cord of three strands is not quickly broken.", reference: "Ecclesiastes 4:12" },
+        { text: "And over all these virtues put on love, which binds them all together in perfect unity.", reference: "Colossians 3:14" },
+        { text: "We love because He first loved us.", reference: "1 John 4:19" },
+      ],
+    },
   },
   accommodation: {
     coordinator: {

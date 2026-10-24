@@ -16,6 +16,7 @@ import {
   type Variants,
 } from 'motion/react';
 import { useSiteConfig } from '@/hooks/use-site-config';
+import { useScreenScrollLock } from '@/hooks/use-screen-scroll-lock';
 import { siteConfig as defaultSiteConfig } from '@/content/site';
 import { parseWeddingDate } from '@/lib/wedding-date';
 import { InviteParticles } from '@/components/loader/InviteParticles';
@@ -83,7 +84,8 @@ function getFocusLiftPhase(phase: EnvelopePhase): 'idle' | 'opening' | 'photos' 
 }
 
 const photoEmergenceEase: Transition = { duration: 2.35, ease: [0.22, 1, 0.18, 1] };
-const letterEmergenceEase: Transition = { duration: 3.05, ease: [0.5, 0.02, 0.14, 1] };
+const letterEmergenceEase: Transition = { duration: 2.6, ease: [0.33, 0, 0.15, 1] };
+const letterSettleEase: Transition = { duration: 0.9, ease: [0.22, 1, 0.36, 1] };
 const flapEase: Transition = { duration: 1.1, ease: [0.65, 0, 0.35, 1] };
 const inviteExitEase: Transition = { duration: 1.65, ease: [0.22, 1, 0.36, 1], delay: 0.75 };
 const inviteEnterEase: Transition = { duration: 1.2, ease: [0.22, 1, 0.36, 1] };
@@ -146,23 +148,40 @@ export const Hero: React.FC<HeroProps> = ({
   );
   const showPhotoBackdrop = !isPlain && backgroundPhotos.length > 0;
 
+  // envelopePhotos show in any display mode; otherwise photo mode falls back to the date-card photos
+  const envelopePhotoSources = useMemo(
+    () =>
+      content.envelopePhotos?.length
+        ? content.envelopePhotos
+        : isPlain
+          ? []
+          : content.photos ?? [],
+    [content.envelopePhotos, content.photos, isPlain],
+  );
+  const showEnvelopePhotos = envelopePhotoSources.length > 0;
+
   const envelopePolaroids = useMemo(() => {
-    const photos = (content.photos ?? []).map((src) => encodeURI(src));
+    const photos = envelopePhotoSources.map((src) => encodeURI(src));
     const pick = (index: number) => photos[index % photos.length];
     if (!photos.length) return { mobile: [] as const, desktop: [] as const };
+    const pair = [
+      { src: pick(0), side: 'left' as const },
+      { src: pick(1), side: 'right' as const },
+    ] as const;
     return {
-      mobile: [
-        { src: pick(0), side: 'left' as const },
-        { src: pick(1), side: 'right' as const },
-      ] as const,
-      desktop: [
-        { src: pick(0), side: 'left' as const },
-        { src: pick(1), side: 'center' as const },
-        { src: pick(2), side: 'right' as const },
-        { src: pick(3), side: 'right-inner' as const },
-      ] as const,
+      mobile: pair,
+      // Two photos: flank the card on desktop too instead of repeating them
+      desktop:
+        photos.length <= 2
+          ? pair
+          : ([
+              { src: pick(0), side: 'left' as const },
+              { src: pick(1), side: 'center' as const },
+              { src: pick(2), side: 'right' as const },
+              { src: pick(3), side: 'right-inner' as const },
+            ] as const),
     };
-  }, [content.photos]);
+  }, [envelopePhotoSources]);
 
   const countdownText = useMemo(() => {
     const weddingDate = new Date(siteConfig.wedding.date);
@@ -218,17 +237,7 @@ export const Hero: React.FC<HeroProps> = ({
     }
   }, [visible]);
 
-  useEffect(() => {
-    if (!visible || isExiting) return;
-
-    document.documentElement.style.overflow = 'hidden';
-    document.body.style.overflow = 'hidden';
-
-    return () => {
-      document.documentElement.style.overflow = '';
-      document.body.style.overflow = '';
-    };
-  }, [visible, isExiting]);
+  useScreenScrollLock(visible && !isExiting);
 
   useEffect(() => {
     if (phase === 'cta') {
@@ -293,7 +302,7 @@ export const Hero: React.FC<HeroProps> = ({
     setPhase('rising');
     await wait(isPlain ? 2400 : 3200);
 
-    if (!isPlain) {
+    if (showEnvelopePhotos) {
       setLiveMessage('Photos revealing.');
       setPhase('photos');
       await wait(3600);
@@ -304,7 +313,7 @@ export const Hero: React.FC<HeroProps> = ({
 
     setPhase('cta');
     setLiveMessage('Invitation ready.');
-  }, [isPlain, reduceMotion]);
+  }, [isPlain, reduceMotion, showEnvelopePhotos]);
 
   const handleSealClick = useCallback(
     (e: React.MouseEvent | React.KeyboardEvent) => {
@@ -394,23 +403,12 @@ export const Hero: React.FC<HeroProps> = ({
     exit: { y: '-18%', x: '108%', rotate: 16, scale: 0.72, opacity: 0, zIndex: 10 },
   };
 
-  const mobileEnvelopePhotoLeftVariants: Variants = {
-    hidden: { y: '58%', x: '6%', rotate: -1, scale: 0.72, opacity: 0, zIndex: 12 },
-    emerge: { y: '0%', x: '-8%', rotate: -4, scale: 1, opacity: 1, zIndex: 16 },
-    hover: { y: '-6%', x: '-8%', rotate: -4.5, scale: 1.05, opacity: 1, zIndex: 26 },
-    press: { y: '-3%', x: '-8%', rotate: -4.2, scale: 1.02, opacity: 1, zIndex: 24 },
-    lifted: { y: '-12%', x: '-8%', rotate: -4.5, scale: 1.08, opacity: 1, zIndex: 30 },
-    exit: { y: '-18%', x: '-108%', rotate: -24, scale: 0.68, opacity: 0, zIndex: 10 },
-  };
-
-  const mobileEnvelopePhotoRightVariants: Variants = {
-    hidden: { y: '58%', x: '-6%', rotate: 1, scale: 0.72, opacity: 0, zIndex: 12 },
-    emerge: { y: '0%', x: '8%', rotate: 4, scale: 1, opacity: 1, zIndex: 16 },
-    hover: { y: '-6%', x: '8%', rotate: 4.5, scale: 1.05, opacity: 1, zIndex: 26 },
-    press: { y: '-3%', x: '8%', rotate: 4.2, scale: 1.02, opacity: 1, zIndex: 24 },
-    lifted: { y: '-12%', x: '8%', rotate: 4.5, scale: 1.08, opacity: 1, zIndex: 30 },
-    exit: { y: '-18%', x: '108%', rotate: 24, scale: 0.68, opacity: 0, zIndex: 10 },
-  };
+  /*
+    Pair layout: two small polaroids in front of the card's lower corners, still tucked
+    in the pocket. They are tugged out (overshoot, dip, settle) rather than faded in.
+  */
+  const frontLeftVariants = useMemo(() => makeFrontPhotoVariants('left'), []);
+  const frontRightVariants = useMemo(() => makeFrontPhotoVariants('right'), []);
 
   const revealCopyContainerVariants: Variants = {
     hidden: {},
@@ -498,7 +496,7 @@ export const Hero: React.FC<HeroProps> = ({
 
   return (
     <motion.div
-      className={`env-invite-screen${isPlain ? ' env-invite-screen--plain' : ''}${isPlain && enterFromLoading && visible && !reduceMotion ? ' is-arriving' : ''} ${visible ? '' : 'is-hidden'}`}
+      className={`env-invite-screen${isPlain ? ' env-invite-screen--plain' : ''}${isPlain && showEnvelopePhotos ? ' env-invite-screen--with-photos' : ''}${isPlain && enterFromLoading && visible && !reduceMotion ? ' is-arriving' : ''} ${visible ? '' : 'is-hidden'}`}
       data-phase={isExiting ? 'exiting' : phase}
       aria-hidden={!visible}
       initial={false}
@@ -690,7 +688,9 @@ export const Hero: React.FC<HeroProps> = ({
                               ...letterEmergenceEase,
                               opacity: { duration: 0 },
                             }
-                          : { duration: 0.01 }
+                          : letterState === 'out'
+                            ? letterSettleEase
+                            : { duration: 0.01 }
                     }
                   >
                     <div className="env-invite-letter-frame" aria-hidden="true" />
@@ -729,28 +729,31 @@ export const Hero: React.FC<HeroProps> = ({
                     </div>
                   </motion.div>
 
-                  {!isPlain && (
-                  <div className="env-invite-photos-emerge">
-                    {isMobileViewport
+                  {showEnvelopePhotos && (
+                  <div
+                    className={`env-invite-photos-emerge${
+                      isMobileViewport || envelopePolaroids.desktop.length <= 2
+                        ? ' env-invite-photos-emerge--front'
+                        : ''
+                    }`}
+                  >
+                    {isMobileViewport || envelopePolaroids.desktop.length <= 2
                       ? envelopePolaroids.mobile.map((photo, index) => (
                           <PolaroidPhoto
-                            key={`mobile-${photo.side}-${photo.src}`}
+                            key={`pair-${photo.side}-${photo.src}`}
                             side={photo.side}
                             src={photo.src}
-                            alt={photo.side === 'left' ? `${groomName} portrait` : `${brideName} portrait`}
-                            variants={
-                              photo.side === 'left'
-                                ? mobileEnvelopePhotoLeftVariants
-                                : mobileEnvelopePhotoRightVariants
-                            }
+                            alt={coupleNames}
+                            variants={photo.side === 'left' ? frontLeftVariants : frontRightVariants}
                             photoState={photoState}
                             liftedPhoto={liftedPhoto}
                             onToggle={toggleLiftedPhoto}
                             interactive={photosInteractive}
-                            emergenceDelay={index === 0 ? 0.55 : 1.0}
+                            emergenceDelay={index === 0 ? 0.2 : 0.5}
                             reduceMotion={reduceMotion}
                             isExiting={isExiting}
                             envelopePair
+                            pullOut
                           />
                         ))
                       : envelopePolaroids.desktop.map((photo, index) => {
@@ -942,6 +945,29 @@ function wait(ms: number) {
   });
 }
 
+function makeFrontPhotoVariants(side: 'left' | 'right'): Variants {
+  const tilt = side === 'left' ? -5 : 5;
+  const towardCenter = side === 'left' ? '38%' : '-38%';
+  // Only transforms change between rest states, so nothing jumps up and down
+  return {
+    // Fully down inside the pocket; the pocket lip hides it
+    hidden: { y: '118%', x: '0%', rotate: 0, scale: 0.94, opacity: 0, zIndex: 16 },
+    emerge: { y: '0%', x: '0%', rotate: tilt, scale: 1, opacity: 1, zIndex: 16 },
+    hover: { y: '0%', x: '0%', rotate: tilt * 1.2, scale: 1.04, opacity: 1, zIndex: 26 },
+    press: { y: '0%', x: '0%', rotate: tilt, scale: 0.98, opacity: 1, zIndex: 24 },
+    // Tapped: lift clear of the pocket, straighten and enlarge toward the card's centre
+    lifted: { y: '-30%', x: towardCenter, rotate: 0, scale: 1.6, opacity: 1, zIndex: 40 },
+    exit: { y: '-20%', x: side === 'left' ? '-120%' : '120%', rotate: tilt * 4, scale: 0.7, opacity: 0, zIndex: 10 },
+  };
+}
+
+// Long, soft ease-out for the pull; opacity is quick so the photo reads as sliding, not fading
+const frontPullEase: Transition = {
+  duration: 1.5,
+  ease: [0.16, 1, 0.3, 1],
+  opacity: { duration: 0.35, ease: 'easeOut' },
+};
+
 interface PolaroidPhotoProps {
   side: PhotoSide;
   src: string;
@@ -955,6 +981,8 @@ interface PolaroidPhotoProps {
   reduceMotion: boolean | null;
   isExiting?: boolean;
   envelopePair?: boolean;
+  /** Front-pocket pair: slow single-motion pull instead of the default emergence */
+  pullOut?: boolean;
 }
 
 const PHOTO_EXIT_DELAY: Record<PhotoSide, number> = {
@@ -977,6 +1005,7 @@ function PolaroidPhoto({
   reduceMotion,
   isExiting = false,
   envelopePair = false,
+  pullOut = false,
 }: PolaroidPhotoProps) {
   const canInteract = interactive && !reduceMotion && !isExiting;
 
@@ -1005,7 +1034,7 @@ function PolaroidPhoto({
             : photoState === 'hidden'
               ? { duration: 0.01 }
               : animateState === 'emerge' && liftedPhoto === null
-                ? { ...photoEmergenceEase, delay: emergenceDelay }
+                ? { ...(pullOut ? frontPullEase : photoEmergenceEase), delay: emergenceDelay }
                 : photoInteractEase
       }
       onClick={(e) => {
@@ -1022,7 +1051,7 @@ function PolaroidPhoto({
           alt={alt}
           fill
           className="object-cover env-invite-polaroid-img"
-          sizes={envelopePair ? '(max-width: 767px) 42vw, 140px' : '(min-width: 768px) 310px, 140px'}
+          sizes={envelopePair ? '(max-width: 767px) 40vw, 220px' : '(min-width: 768px) 310px, 140px'}
           priority
         />
       </div>

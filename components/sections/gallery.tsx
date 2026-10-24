@@ -5,7 +5,7 @@ import { createPortal } from "react-dom"
 import Image from "next/image"
 import Link from "next/link"
 import localFont from "next/font/local"
-import { X, ChevronLeft, ChevronRight, Camera } from "lucide-react"
+import { X, ChevronLeft, ChevronRight, Camera, Maximize2 } from "lucide-react"
 import { Cinzel } from "next/font/google"
 import { Section } from "@/components/section"
 import { sectionType } from "@/lib/section-typography"
@@ -72,6 +72,30 @@ const innerFrameStyle: React.CSSProperties = {
 const badgeStyle: React.CSSProperties = {
   backgroundColor: "color-mix(in srgb, var(--color-motif-deep) 75%, transparent)",
   color: C.light,
+}
+
+// Soft navy fade at the bottom of a photo so the number reads clearly
+const photoShade: React.CSSProperties = {
+  background:
+    "linear-gradient(to top, color-mix(in srgb, var(--color-welcome-navy) 62%, transparent), transparent 38%)",
+}
+
+/** "No. 03 — of 12" lockup in the bottom-left corner of a photo */
+function PhotoNumber({ index, total, visible }: { index: number; total: number; visible: boolean }) {
+  return (
+    <div
+      className={`pointer-events-none absolute bottom-7 left-5 flex items-end gap-2 text-left text-white transition-opacity duration-500 ${
+        visible ? "opacity-100" : "opacity-0"
+      }`}
+    >
+      <span className={`${cinzel.className} text-3xl font-semibold leading-none md:text-4xl`}>
+        {String(index + 1).padStart(2, "0")}
+      </span>
+      <span className={`${cinzel.className} pb-0.5 text-[0.6rem] uppercase tracking-[0.25em] text-white/80`}>
+        of {String(total).padStart(2, "0")}
+      </span>
+    </div>
+  )
 }
 
 const CORNER_DECO_CLASS =
@@ -151,6 +175,7 @@ function MobileInfiniteCarousel({
   onPointerMove: (e: React.PointerEvent) => void
 }) {
   const stripRef = useRef<HTMLDivElement>(null)
+  const railRef = useRef<HTMLDivElement>(null)
   const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const n = items.length
   const loop = n > 1
@@ -198,13 +223,21 @@ function MobileInfiniteCarousel({
     if (settleTimer.current) clearTimeout(settleTimer.current)
   }, [])
 
+  // Keep the active thumbnail in view inside the rail (without scrolling the page)
+  useEffect(() => {
+    const rail = railRef.current
+    const thumb = rail?.children[active] as HTMLElement | undefined
+    if (!rail || !thumb) return
+    rail.scrollTo({ left: thumb.offsetLeft - (rail.clientWidth - thumb.clientWidth) / 2, behavior: "smooth" })
+  }, [active])
+
   return (
-    <div className="sm:hidden">
+    <div className="md:hidden">
       <div
         ref={stripRef}
         onScroll={handleScroll}
-        className="relative flex gap-2.5 overflow-x-auto pt-1 pb-5 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        style={{ paddingInline: "7%" }}
+        className="relative flex gap-3 overflow-x-auto pt-2 pb-6 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        style={{ paddingInline: "10%" }}
         aria-label="Gallery carousel"
       >
         {slides.map((item, i) => {
@@ -214,8 +247,8 @@ function MobileInfiniteCarousel({
             <button
               key={`${item.image}-${i}`}
               type="button"
-              className={`group relative snap-center shrink-0 w-[86%] rounded-xl p-1.5 transition-[transform,opacity] duration-500 ${
-                isActive ? "scale-100 opacity-100" : "scale-[0.94] opacity-75"
+              className={`group relative snap-center shrink-0 w-[80%] max-w-[360px] rounded-2xl p-1.5 transition-[transform,opacity] duration-500 ${
+                isActive ? "scale-100 opacity-100" : "scale-[0.9] opacity-60"
               }`}
               style={frameStyle}
               onPointerDown={onPointerDown}
@@ -225,31 +258,27 @@ function MobileInfiniteCarousel({
               tabIndex={loop && (i < n || i >= 2 * n) ? -1 : 0}
               aria-hidden={loop && (i < n || i >= 2 * n) ? true : undefined}
             >
-              <div className="relative aspect-[2/3] overflow-hidden rounded-lg">
+              <div className="relative aspect-[3/5] overflow-hidden rounded-xl">
                 <Image
                   src={encodeURI(item.image)}
                   alt={item.text || `Gallery image ${index + 1}`}
                   fill
-                  sizes="86vw"
-                  className="object-cover"
+                  sizes="(max-width: 480px) 80vw, 360px"
+                  className={`object-cover ${isActive ? "gallery-kenburns" : ""}`}
                   priority={i === n}
                 />
-                <div className="pointer-events-none absolute inset-0 rounded-lg" style={innerFrameStyle} />
-              </div>
-
-              <div className="absolute top-3.5 right-3.5 rounded-full px-2 py-0.5 backdrop-blur-sm" style={badgeStyle}>
-                <span className="text-[11px] font-medium tracking-wider">
-                  {index + 1}/{n}
-                </span>
+                <div className="pointer-events-none absolute inset-0" style={photoShade} />
+                <div className="pointer-events-none absolute inset-0 rounded-xl" style={innerFrameStyle} />
+                <PhotoNumber index={index} total={n} visible={isActive} />
               </div>
             </button>
           )
         })}
       </div>
 
-      {/* Swipe hint: animated arrows either side, dots for each photo */}
+      {/* Swipe hint + a rail of thumbnails to jump straight to any photo */}
       {loop && (
-        <div className="flex flex-col items-center gap-2.5">
+        <div className="flex flex-col items-center gap-3">
           <div className="flex items-center gap-3" style={{ color: C.blue }}>
             <ChevronLeft className="gallery-swipe-arrow gallery-swipe-arrow--left h-4 w-4" aria-hidden />
             <span
@@ -260,25 +289,181 @@ function MobileInfiniteCarousel({
             </span>
             <ChevronRight className="gallery-swipe-arrow gallery-swipe-arrow--right h-4 w-4" aria-hidden />
           </div>
-          <div className="flex items-center gap-1.5" role="tablist" aria-label="Choose a photo">
-            {items.map((item, idx) => (
-              <button
-                key={item.image + idx}
-                type="button"
-                role="tab"
-                aria-selected={idx === active}
-                aria-label={`Show photo ${idx + 1}`}
-                onClick={() => centerOn(n + idx, "smooth")}
-                className="h-1.5 rounded-full transition-all duration-300"
-                style={{
-                  width: idx === active ? "1.25rem" : "0.375rem",
-                  background: idx === active ? C.accent : "color-mix(in srgb, var(--color-welcome-heading) 35%, transparent)",
-                }}
-              />
-            ))}
+          <div
+            ref={railRef}
+            className="flex w-full gap-2 overflow-x-auto px-[calc(50%-1.375rem)] py-1.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            role="tablist"
+            aria-label="Choose a photo"
+          >
+            {items.map((item, idx) => {
+              const isActive = idx === active
+              return (
+                <button
+                  key={item.image + idx}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  aria-label={`Show photo ${idx + 1}`}
+                  onClick={() => centerOn(n + idx, "smooth")}
+                  className={`relative h-14 w-11 shrink-0 overflow-hidden rounded-md transition-all duration-300 ${
+                    isActive ? "scale-110 opacity-100" : "opacity-55"
+                  }`}
+                  style={{
+                    boxShadow: isActive
+                      ? `0 0 0 2px #FFFFFF, 0 0 0 3.5px ${C.accent}`
+                      : "0 0 0 1px rgb(255 255 255 / 80%)",
+                  }}
+                >
+                  <Image src={encodeURI(item.image)} alt="" fill sizes="44px" className="object-cover" />
+                </button>
+              )
+            })}
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+const SPOTLIGHT_MS = 5000
+
+/**
+ * Tablet/desktop spotlight: one large featured portrait that slowly drifts and
+ * cross-fades to the next photo, beside a grid of every photo. Hovering a thumbnail
+ * features it; hovering anywhere pauses the slideshow; clicking opens the lightbox.
+ */
+function DesktopSpotlight({
+  items,
+  onOpen,
+}: {
+  items: GalleryItem[]
+  onOpen: (item: GalleryItem, index: number) => void
+}) {
+  const n = items.length
+  const [active, setActive] = useState(0)
+  const [paused, setPaused] = useState(false)
+  const [reduceMotion, setReduceMotion] = useState(false)
+  // Only mount large images once they've been (or are about to be) featured
+  const [seen, setSeen] = useState<Set<number>>(() => new Set([0, 1]))
+  const autoplay = n > 1 && !paused && !reduceMotion
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)")
+    setReduceMotion(mq.matches)
+    const onChange = () => setReduceMotion(mq.matches)
+    mq.addEventListener("change", onChange)
+    return () => mq.removeEventListener("change", onChange)
+  }, [])
+
+  useEffect(() => {
+    setSeen((prev) => {
+      const next = (active + 1) % n
+      if (prev.has(active) && prev.has(next)) return prev
+      return new Set(prev).add(active).add(next)
+    })
+  }, [active, n])
+
+  useEffect(() => {
+    if (!autoplay) return
+    const timer = setTimeout(() => setActive((a) => (a + 1) % n), SPOTLIGHT_MS)
+    return () => clearTimeout(timer)
+  }, [active, autoplay, n])
+
+  return (
+    <div
+      className="hidden md:grid grid-cols-[minmax(0,5fr)_minmax(0,7fr)] items-stretch gap-5 lg:gap-7"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocus={() => setPaused(true)}
+      onBlur={() => setPaused(false)}
+    >
+      {/* Featured photo */}
+      <button
+        type="button"
+        className="group relative rounded-2xl p-2 transition-shadow duration-300"
+        style={frameStyle}
+        onClick={() => onOpen(items[active], active)}
+        aria-label={`Open image ${active + 1}`}
+      >
+        <div className="relative h-full min-h-[26rem] overflow-hidden rounded-xl">
+          {items.map((item, i) =>
+            seen.has(i) ? (
+              <Image
+                key={item.image + i}
+                src={encodeURI(item.image)}
+                alt={i === active ? item.text || `Gallery image ${i + 1}` : ""}
+                fill
+                sizes="(max-width: 1024px) 40vw, 460px"
+                priority={i === 0}
+                className={`object-cover transition-opacity duration-[1200ms] ease-out ${
+                  i === active ? `opacity-100 ${reduceMotion ? "" : "gallery-kenburns"}` : "opacity-0"
+                }`}
+              />
+            ) : null,
+          )}
+          <div className="pointer-events-none absolute inset-0" style={photoShade} />
+          <div className="pointer-events-none absolute inset-0 rounded-xl" style={innerFrameStyle} />
+
+          <span
+            className={`${cinzel.className} absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[0.6rem] font-semibold uppercase tracking-[0.22em] opacity-0 backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-100`}
+            style={badgeStyle}
+          >
+            <Maximize2 className="h-3 w-3" aria-hidden />
+            View
+          </span>
+
+          <PhotoNumber index={active} total={n} visible />
+
+          {/* Slideshow progress */}
+          <div className="absolute inset-x-5 bottom-4 h-[2px] overflow-hidden rounded-full bg-white/25">
+            {autoplay && (
+              <span
+                key={active}
+                className="gallery-progress block h-full w-full rounded-full"
+                style={{ background: C.accent, "--gallery-progress-ms": `${SPOTLIGHT_MS}ms` } as React.CSSProperties}
+              />
+            )}
+          </div>
+        </div>
+      </button>
+
+      {/* Every photo */}
+      <div className="grid grid-cols-4 content-start gap-3 lg:gap-4">
+        {items.map((item, i) => {
+          const isActive = i === active
+          return (
+            <button
+              key={item.image + i}
+              type="button"
+              className={`group relative rounded-lg p-1 transition-all duration-300 hover:-translate-y-0.5 ${
+                isActive ? "opacity-100" : "opacity-75 hover:opacity-100"
+              }`}
+              style={{
+                ...frameStyle,
+                boxShadow: isActive
+                  ? `0 0 0 2px ${C.accent}, ${frameStyle.boxShadow}`
+                  : frameStyle.boxShadow,
+              }}
+              onMouseEnter={() => setActive(i)}
+              onFocus={() => setActive(i)}
+              onClick={() => onOpen(item, i)}
+              aria-label={`Open image ${i + 1}`}
+              aria-current={isActive ? "true" : undefined}
+            >
+              <div className="relative aspect-[3/4] overflow-hidden rounded-md">
+                <Image
+                  src={encodeURI(item.image)}
+                  alt={item.text || `Gallery thumbnail ${i + 1}`}
+                  fill
+                  sizes="(max-width: 1024px) 18vw, 150px"
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="pointer-events-none absolute inset-0 rounded-md" style={innerFrameStyle} />
+              </div>
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 }
@@ -471,7 +656,7 @@ export function Gallery() {
         ) : (
           <>
             {/* Mobile: endless swipe carousel; bleeds past the side padding for slimmer margins */}
-            <div className="-mx-6 sm:mx-0">
+            <div className="-mx-6 sm:-mx-10">
               <MobileInfiniteCarousel
                 items={galleryItems}
                 onOpen={openLightbox}
@@ -480,48 +665,8 @@ export function Gallery() {
               />
             </div>
 
-            {/* Tablet/Desktop: framed grid with a gentle stagger */}
-            <div className="hidden sm:grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-5 lg:gap-6 lg:pb-8">
-              {galleryItems.map((item, index) => (
-                <button
-                  key={item.image + index}
-                  type="button"
-                  className={`group relative w-full rounded-xl p-1.5 transition-all duration-300 hover:-translate-y-1 ${index % 2 === 1 ? "lg:translate-y-8 lg:hover:translate-y-7" : ""}`}
-                  style={frameStyle}
-                  onPointerDown={handleThumbPointerDown}
-                  onPointerMove={handleThumbPointerMove}
-                  onClick={() => openLightbox(item, index)}
-                  aria-label={`Open image ${index + 1}`}
-                >
-                  <div className="relative aspect-[3/4] overflow-hidden rounded-lg">
-                    <Image
-                      src={encodeURI(item.image)}
-                      alt={item.text || `Gallery image ${index + 1}`}
-                      fill
-                      sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                      className="object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
-                    <div
-                      className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                      style={{
-                        background:
-                          "linear-gradient(to top, color-mix(in srgb, var(--color-welcome-navy) 55%, transparent), transparent 55%)",
-                      }}
-                    />
-                    <div className="pointer-events-none absolute inset-0 rounded-lg" style={innerFrameStyle} />
-                  </div>
-
-                  <div
-                    className="absolute top-3.5 right-3.5 rounded-full px-2 py-0.5 opacity-0 backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-100"
-                    style={badgeStyle}
-                  >
-                    <span className="text-[11px] font-medium tracking-wider">
-                      {index + 1}/{galleryItems.length}
-                    </span>
-                  </div>
-                </button>
-              ))}
-            </div>
+            {/* Tablet/Desktop: featured slideshow beside the full photo grid */}
+            <DesktopSpotlight items={galleryItems} onOpen={openLightbox} />
 
             <div className="mt-10 flex justify-center sm:mt-12 md:mt-14">
               <Link

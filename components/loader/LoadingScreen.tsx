@@ -5,6 +5,7 @@ import Image from 'next/image';
 import localFont from 'next/font/local';
 import { useReducedMotion } from 'motion/react';
 import { useSiteConfig } from '@/hooks/use-site-config';
+import { useScreenScrollLock } from '@/hooks/use-screen-scroll-lock';
 import { siteConfig as defaultSiteConfig } from '@/content/site';
 import { PhotoMarquee } from '@/components/loader/invite-photo-backdrop';
 import { BackgroundVideo } from '@/components/background-video';
@@ -164,14 +165,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete, onFade
   const coupleNames = `${siteConfig.couple.groomNickname} & ${siteConfig.couple.brideNickname}`;
 
 
-  useEffect(() => {
-    document.documentElement.style.overflow = 'hidden';
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.documentElement.style.overflow = '';
-      document.body.style.overflow = '';
-    };
-  }, []);
+  useScreenScrollLock(true);
 
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 60000);

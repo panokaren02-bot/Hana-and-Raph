@@ -1382,11 +1382,9 @@
 .env-invite-screen[data-phase="photos"] .env-invite-hint,
 .env-invite-screen[data-phase="revealed"] .env-invite-hint,
 .env-invite-screen[data-phase="cta"] .env-invite-hint {
+  /* Fade only — keep its space so the envelope doesn't jump when the seal is tapped */
   opacity: 0;
   visibility: hidden;
-  max-height: 0;
-  margin: 0;
-  padding: 0;
   transform: none;
 }
 
@@ -2296,6 +2294,11 @@
   display: none;
 }
 
+/* Plain mode with loadingScreen.envelopePhotos — keep the polaroids */
+.env-invite-screen--plain.env-invite-screen--with-photos .env-invite-photos-emerge {
+  display: block;
+}
+
 /* Plain invitation card — wider paper, refined frame */
 .env-invite-screen--plain .env-invite-letter {
   background: linear-gradient(
@@ -2429,6 +2432,7 @@
 
   .env-invite-screen--plain .env-invite-emerge-stack .env-invite-letter,
   .env-invite-screen--plain[data-phase="rising"] .env-invite-emerge-stack .env-invite-letter,
+  .env-invite-screen--plain[data-phase="photos"] .env-invite-emerge-stack .env-invite-letter,
   .env-invite-screen--plain[data-phase="revealed"] .env-invite-emerge-stack .env-invite-letter,
   .env-invite-screen--plain[data-phase="cta"] .env-invite-emerge-stack .env-invite-letter {
     top: -28%;
@@ -2463,12 +2467,14 @@
 
   .env-invite-screen--plain .env-invite-emerge-stack .env-invite-letter,
   .env-invite-screen--plain[data-phase="rising"] .env-invite-emerge-stack .env-invite-letter,
+  .env-invite-screen--plain[data-phase="photos"] .env-invite-emerge-stack .env-invite-letter,
   .env-invite-screen--plain[data-phase="revealed"] .env-invite-emerge-stack .env-invite-letter,
   .env-invite-screen--plain[data-phase="cta"] .env-invite-emerge-stack .env-invite-letter {
     top: -52%;
   }
 
   .env-invite-screen--plain[data-phase="rising"] .env-invite-emerge-stack,
+  .env-invite-screen--plain[data-phase="photos"] .env-invite-emerge-stack,
   .env-invite-screen--plain[data-phase="revealed"] .env-invite-emerge-stack,
   .env-invite-screen--plain[data-phase="cta"] .env-invite-emerge-stack {
     bottom: 14%;
@@ -2931,5 +2937,91 @@
 @media (prefers-reduced-motion: reduce) {
   .env-invite-screen--plain .env-invite-seal-wrap::before {
     animation: none;
+  }
+}
+
+/* ── Front pocket photos (two envelope photos) ──────────────────────────────
+   Polaroids layered in FRONT of the card, their bottoms tucked behind the pocket
+   lip so they read as part of the envelope's contents. Plain white frame — no
+   tinted border or sepia. Tweak size / placement with the variables below. */
+.env-invite-screen .env-invite-photos-emerge--front {
+  --env-front-photo-w: clamp(70px, calc(var(--env-width) * 0.2), 118px);
+  --env-front-photo-inset: 11%;
+  --env-front-photo-bottom: 3%;
+  z-index: 30;
+}
+
+@media (max-width: 767px) {
+  .env-invite-screen .env-invite-photos-emerge--front {
+    --env-front-photo-w: clamp(88px, calc(var(--env-width) * 0.295), 122px);
+    --env-front-photo-inset: -1%;
+    --env-front-photo-bottom: 29%;
+  }
+}
+
+.env-invite-screen .env-invite-photos-emerge--front .env-invite-polaroid.env-invite-polaroid--envelope-pair {
+  top: auto;
+  bottom: var(--env-front-photo-bottom);
+  width: var(--env-front-photo-w);
+  margin-left: 0;
+  padding: 4px;
+  border: 0;
+  border-radius: 3px;
+  background: #ffffff;
+  box-shadow:
+    0 12px 22px rgba(20, 40, 64, 0.26),
+    0 3px 7px rgba(20, 40, 64, 0.14);
+  transition: box-shadow 0.35s ease;
+}
+
+.env-invite-screen .env-invite-photos-emerge--front .env-invite-polaroid.env-invite-polaroid--envelope-pair::before,
+.env-invite-screen .env-invite-photos-emerge--front .env-invite-polaroid.env-invite-polaroid--envelope-pair::after {
+  display: none;
+}
+
+.env-invite-screen .env-invite-photos-emerge--front .env-invite-polaroid--envelope-pair .env-invite-polaroid-photo {
+  height: auto;
+  aspect-ratio: 3 / 4;
+  border: 0;
+  border-radius: 1px;
+  background: #eef2f6;
+  box-shadow: none;
+}
+
+.env-invite-screen .env-invite-photos-emerge--front .env-invite-polaroid--envelope-pair .env-invite-polaroid-photo::after {
+  display: none;
+}
+
+.env-invite-screen .env-invite-photos-emerge--front .env-invite-polaroid--envelope-pair .env-invite-polaroid-img {
+  filter: none;
+  object-position: center 22%;
+}
+
+.env-invite-screen .env-invite-photos-emerge--front .env-invite-polaroid--envelope-pair:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.env-invite-screen .env-invite-photos-emerge--front .env-invite-polaroid.env-invite-polaroid--envelope-pair.env-invite-polaroid--left {
+  left: var(--env-front-photo-inset);
+  right: auto;
+}
+
+.env-invite-screen .env-invite-photos-emerge--front .env-invite-polaroid.env-invite-polaroid--envelope-pair.env-invite-polaroid--right {
+  right: var(--env-front-photo-inset);
+  left: auto;
+}
+
+/* A tapped photo rises above everything so it can be seen in full */
+.env-invite-screen .env-invite-photos-emerge--front .env-invite-polaroid.is-lifted {
+  box-shadow:
+    0 24px 44px rgba(20, 40, 64, 0.34),
+    0 8px 16px rgba(20, 40, 64, 0.18);
+}
+
+/* Mobile: the envelope screen never scrolls or pans */
+@media (max-width: 767px) {
+  .env-invite-screen {
+    touch-action: none;
   }
 }
