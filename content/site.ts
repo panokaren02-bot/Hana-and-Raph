@@ -576,7 +576,7 @@ export const siteConfig = {
         title: "Worth the Wait",
         theme: "light" as const,
         layout: "image-left" as const,
-        image: "/mobile-background/Feb 2024 (1).jpg",
+        image: "/mobile-background/October 2021.JPG",
         imageAlt: "Worth the wait",
         paragraphs: [
           "But some stories are worth the wait. When the world finally opened up again, so did a new chapter for us—filled with adventures, laughter, and countless memories that brought us closer.",
