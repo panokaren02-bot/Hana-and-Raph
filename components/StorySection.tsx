@@ -2,6 +2,7 @@
 
 import React from "react"
 import localFont from "next/font/local"
+import { Cinzel } from "next/font/google"
 import { motion, useReducedMotion } from "motion/react"
 import { sectionType, storyChapterTitleSize } from "@/lib/section-typography"
 import Image from "next/image"
@@ -13,6 +14,29 @@ const theSeasons = localFont({
   display: "swap",
   variable: "--font-the-seasons",
 })
+
+const cinzel = Cinzel({
+  subsets: ["latin"],
+  weight: ["400", "600"],
+})
+
+// The Seasons has no clean glyphs for digits / symbols — render only those
+// characters (e.g. the year in "May 2024") in Cinzel, keep letters in The Seasons.
+function SpecialCharFont({ text }: { text: string }) {
+  return (
+    <>
+      {text.split(/([^\p{L}\s]+)/u).map((part, i) =>
+        i % 2 === 1 ? (
+          <span key={i} className={`${cinzel.className} tracking-normal`}>
+            {part}
+          </span>
+        ) : (
+          part
+        ),
+      )}
+    </>
+  )
+}
 
 const lightBg = "var(--color-welcome-bg)"
 const darkBg = "var(--color-welcome-green)"
@@ -143,7 +167,9 @@ function PlainOpenChapter({
           viewport={{ once: true, margin: "-10%" }}
           transition={{ duration: 0.85, delay: 0.15, ease: revealEase }}
         >
-          <p className={`${theSeasons.className} story-open-date`}>{date || fallbackLabel}</p>
+          <p className={`${theSeasons.className} story-open-date`}>
+            <SpecialCharFont text={date || fallbackLabel} />
+          </p>
           {title ? (
             <h2 className={`${theSeasons.className} story-open-title`}>{title}</h2>
           ) : null}
@@ -350,7 +376,7 @@ export const StorySection: React.FC<StorySectionProps> = ({
               <p
                 className={`${theSeasons.className} story-plain-chapter-label mb-2 text-[0.6rem] font-medium uppercase sm:text-[0.66rem]`}
               >
-                {date || `${chapterLabelText} ${chapterLabel}`}
+                <SpecialCharFont text={date || `${chapterLabelText} ${chapterLabel}`} />
               </p>
               {title ? (
                 <h2

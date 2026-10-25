@@ -268,18 +268,18 @@ export function InvitationPage({ sponsorsList, showEntourage = true }: Invitatio
               </div>
               <Countdown />
               <Gallery />
-              {/* <MessageVideo /> */}
-              <Messages />
+              {/* Details includes the Attire Guidelines and Gentle Reminders */}
               <Details />
               <WeddingTimeline />
               {showEntourage && <Entourage sponsorsList={sponsorsList} />}
-              <GuestList />
-              <BookOfGuests />
-     
-              <FAQ />
               <Registry />
-              <WeddingPlaylist /> 
+              <GuestList />
+              {/* <BookOfGuests /> */}
+              {/* <MessageVideo /> */}
+              <Messages />
               <SnapShare />
+              <FAQ />
+              <WeddingPlaylist />
               <SeeYouThere />
               <Footer />
               </motion.div>

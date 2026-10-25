@@ -113,7 +113,7 @@ const VENUE_CARDS = {
     badge: "Ceremony & Reception",
     sectionLabel: "Venue",
     showDate: true,
-    showArrival: false,
+    showArrival: true,
     // Time rows on the card, e.g. "Ceremony 4:30 PM | Reception 7:00 PM"
     ceremonyLabel: "Ceremony",
     receptionLabel: "Reception",
@@ -139,11 +139,11 @@ const VENUE_CARDS = {
 
 // ── RSVP & contact ──────────────────────────────────────────────────────────
 const RSVP = {
-  deadline: " November 30, 2026",
+  deadline: "November 30, 2026",
   coordinator: "{groom} / {bride}", // {groom} / {bride} → couple nicknames
   phone: "to be announced",
 }
-const HASHTAGS = ["#hahaRAPHnasadambHANA","#RAPHnaHANAmbuhay"] // ⚠ check — looks like it's from a previous couple
+const HASHTAGS = ["#hahaRAPHnasadambHANA"]
 
 // ── Attire guide (Event Details → Attire Guidelines) ────────────────────────
 // SHOW = which cards to display AND their order, top to bottom. Examples:
@@ -175,7 +175,7 @@ const DRESS_CODE_PALETTE: AttireColor[] = [
 //   Each side (ladies / gentlemen) has a label, an optional intro (details, with an
 //   optional highlighted phrase) and an optional list of roles with what they wear.
 const ATTIRE = {
-  show: ["entourage", "family", "sponsors", "guests"] as AttireGroupId[],
+  show: ["sponsors", "guests"] as AttireGroupId[],
 
   entourage: {
     title: "Entourage",
@@ -494,12 +494,12 @@ export const siteConfig = {
         ],
       },
       {
-        date: "",
+        date: "February 2024",
         title: "Worth the Wait",
         theme: "light" as const,
         layout: "image-left" as const,
-        image: "/mobile-background/Welcome to Mt. Pinatubo Crater Lake.png",
-        imageAlt: "Our adventures together at Mt. Pinatubo Crater Lake",
+        image: "/mobile-background-new/couples (7).jpeg",
+        imageAlt: "Worth the wait",
         paragraphs: [
           "But some stories are worth the wait. When the world finally opened up again, so did a new chapter for us—filled with adventures, laughter, and countless memories that brought us closer.",
         ],
@@ -662,7 +662,7 @@ export const siteConfig = {
     subtitle: "our wedding day",
     description:
       "From the first arrival to the last farewell, here is how we will spend this day together.",
-    quote: "At the right time, I, the Lord, will make it happen.",
+    quote: "", // "" hides the quote + citation under the timeline
     quoteCitation: "Isaiah 60:22",
     // Optional corner decorations — leave "" to hide
     decos: {
@@ -798,7 +798,8 @@ export const siteConfig = {
       "Little Groom": "Little Groom",
       "Little Bride": "Little Bride",
       "Flower Girls": "Flower Girls",
-      "Beloved Entourage": "Beloved Entourage",
+      Groomsmen: "Groomsmen",
+      Bridesmaids: "Bridesmaids",
       "To light our path": "To light our path",
       "To Cloth us as one": "To Cloth us as one",
       "To bind us together": "To bind us together",
@@ -982,7 +983,7 @@ export const siteConfig = {
       },
       {
         question: "What time should I arrive for the ceremony?",
-        answer: `Please arrive by ${TIMES.guestArrival} so you have time to find your seat and settle in. The ceremony will begin promptly at ${TIMES.ceremony}. Entourage members are requested to assemble at ${TIMES.entourageCall}.`,
+        answer: `Please arrive by ${TIMES.guestArrival} so you have time to find your seat and settle in. The ceremony will begin promptly at ${TIMES.ceremony}.`,
       },
       {
         question: "Where will the ceremony and reception take place?",
@@ -1116,7 +1117,7 @@ export const siteConfig = {
     // {couple} → "Groom & Bride" nicknames. "" hides a line or image.
     qrCard: {
       coupleNameImage: BRAND.coupleNameImage, // unused: the card sets the names in type like the loader
-      coupleImage: "/Details/couple.png", // couple illustration beside the text
+      coupleImage: "/mobile-background-new/couples (3).jpeg", // couple illustration beside the text
       eyebrow: "The wedding of",
       title: "Find Your Table",
       script: "please be seated",
@@ -1556,9 +1557,9 @@ Now, as they prepare to say yes before God and the people they love most, Cather
     quickLinksTitle: "Quick Links",
     links: [
       { label: "Home", href: "#home" },
+      { label: "Gallery", href: "#gallery" },
       { label: "Event Details", href: "#details" },
       { label: "RSVP", href: "#guest-list" },
-      { label: "Gallery", href: "#gallery" },
       { label: "Messages", href: "#messages" },
       { label: "FAQ", href: "#faq" },
     ],
@@ -1595,8 +1596,9 @@ Now, as they prepare to say yes before God and the people they love most, Cather
       // 3 photos: two squares on top, one wide photo below
       images: COUPLE_PHOTOS.slice(0, 3),
     },
+    // Hidden: the couple keeps the invitation intimate (no sharing the website QR / social links)
     website: {
-      show: true,
+      show: false,
       title: "Share Our Wedding Website",
       description:
         "Spread the word about {couple}'s celebration. Share this QR code so friends and family can join us.",
@@ -1605,14 +1607,14 @@ Now, as they prepare to say yes before God and the people they love most, Cather
     },
     hashtags: {
       show: true,
-      title: "Wedding Hashtags",
+      title: "Wedding Hashtag",
       copy: "Copy",
       copied: "Copied",
       copyAll: "Copy All",
       allCopied: "All Copied!",
     },
     social: {
-      show: true,
+      show: false,
       title: "Share on Social Media",
       description: "Help spread the word about {couple}'s wedding across your favorite platforms.",
       // Remove any you don't want: "instagram" | "facebook" | "tiktok" | "twitter"

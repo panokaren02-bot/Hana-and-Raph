@@ -1016,8 +1016,8 @@ export function Details() {
           )}
         </div>
 
-        {/* Attire Guidelines */}
-        <div className="relative z-20 mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
+        {/* Attire Guidelines (id = navbar "Attire" link) */}
+        <div id="attire" className="relative z-20 mx-auto max-w-7xl scroll-mt-16 px-4 sm:scroll-mt-20 sm:px-6 md:scroll-mt-24 md:px-8">
           {attireGroups.length > 0 && (
           <div className="text-center mb-8 sm:mb-10 md:mb-12">
             <SectionIconDivider icon={<Shirt className="h-3.5 w-3.5 sm:h-4 sm:w-4" style={{ color: C.blue }} aria-hidden />} />

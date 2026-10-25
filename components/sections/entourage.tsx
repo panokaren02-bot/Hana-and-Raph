@@ -538,25 +538,27 @@ const ROLE_CATEGORY_ORDER = [
   "The Couple",
   "Parents of the Groom",
   "Parents of the Bride",
-  "Family of the Groom",
-  "Family of the Bride",
-  "Man of Honor",
-  "Matron of Honor",
-  "Best Man",
-  "Maid of Honor",
-  "Little Groom",
-  "Little Bride",
-  "Little Tiny Groom",
-  "Little Love Bearer",
-  "Little Promise Bearer",
-  // Secondary Sponsors block (see secondarySponsorGroups)
+  // Principal + Peer Sponsors render inside the Parents block above.
+  // Secondary Sponsors block (see secondarySponsorGroups) — right after the Principal Sponsors
   "Candle Sponsors",
   "Candle Bearer",
   "Veil Sponsors",
   "Cord Sponsors",
   "Ribbon Sponsors",
+  "Man of Honor",
+  "Matron of Honor",
+  "Best Man",
+  "Maid of Honor",
+  // Groomsmen | Bridesmaids side by side, each under its own title
   "Groomsmen",
   "Bridesmaids",
+  "Family of the Groom",
+  "Family of the Bride",
+  "Little Groom",
+  "Little Bride",
+  "Little Tiny Groom",
+  "Little Love Bearer",
+  "Little Promise Bearer",
   // Side-by-side pairs (see PAIRED_COLUMN_SECTIONS)
   "Little Groomsmen",
   "Little Bridesmaids",
@@ -644,22 +646,13 @@ function isCoupleMember(member: EntourageMember): boolean {
   return normalizeRoleCategory(member.roleCategory) === "The Couple"
 }
 
-function sortGroomParents(members: EntourageMember[]): EntourageMember[] {
+// Father first, then mother — same order for the groom's and the bride's parents
+function sortParents(members: EntourageMember[]): EntourageMember[] {
   return [...members].sort((a, b) => {
     const aIsFather = a.roleTitle?.toLowerCase().includes("father") ?? false
     const bIsFather = b.roleTitle?.toLowerCase().includes("father") ?? false
     if (aIsFather && !bIsFather) return -1
     if (!aIsFather && bIsFather) return 1
-    return 0
-  })
-}
-
-function sortBrideParents(members: EntourageMember[]): EntourageMember[] {
-  return [...members].sort((a, b) => {
-    const aIsMother = a.roleTitle?.toLowerCase().includes("mother") ?? false
-    const bIsMother = b.roleTitle?.toLowerCase().includes("mother") ?? false
-    if (aIsMother && !bIsMother) return -1
-    if (!aIsMother && bIsMother) return 1
     return 0
   })
 }
@@ -1052,8 +1045,8 @@ export function Entourage({ sponsorsList }: { sponsorsList?: SponsorsList } = {}
                         {hasGroomParents && hasBrideParents && (
                           <TwoColumnLayout leftTitle="Parents of the Groom" rightTitle="Parents of the Bride">
                             {(() => {
-                              const leftArr = sortGroomParents(parentsGroom)
-                              const rightArr = sortBrideParents(parentsBride)
+                              const leftArr = sortParents(parentsGroom)
+                              const rightArr = sortParents(parentsBride)
                               const maxLen = Math.max(leftArr.length, rightArr.length)
                               const rows = []
                               for (let i = 0; i < maxLen; i++) {
@@ -1084,7 +1077,7 @@ export function Entourage({ sponsorsList }: { sponsorsList?: SponsorsList } = {}
                         )}
                         {hasGroomParents && !hasBrideParents && (
                           <TwoColumnLayout singleTitle="Parents of the Groom" centerContent={true}>
-                            {sortGroomParents(parentsGroom).map((member, idx) => (
+                            {sortParents(parentsGroom).map((member, idx) => (
                               <div
                                 key={`parent-groom-only-${idx}-${member.name}`}
                                 className="col-span-2 flex justify-center min-w-0 overflow-hidden px-0.5 sm:px-1"
@@ -1096,7 +1089,7 @@ export function Entourage({ sponsorsList }: { sponsorsList?: SponsorsList } = {}
                         )}
                         {!hasGroomParents && hasBrideParents && (
                           <TwoColumnLayout singleTitle="Parents of the Bride" centerContent={true}>
-                            {sortBrideParents(parentsBride).map((member, idx) => (
+                            {sortParents(parentsBride).map((member, idx) => (
                               <div
                                 key={`parent-bride-only-${idx}-${member.name}`}
                                 className="col-span-2 flex justify-center min-w-0 overflow-hidden px-0.5 sm:px-1"
@@ -1576,7 +1569,10 @@ export function Entourage({ sponsorsList }: { sponsorsList?: SponsorsList } = {}
                               <GroupDivider />
                             </div>
                           )}
-                          <TwoColumnLayout singleTitle="Beloved Entourage">
+                          <TwoColumnLayout
+                            leftTitle={groomsmen.length > 0 ? "Groomsmen" : undefined}
+                            rightTitle={bridesmaids.length > 0 ? "Bridesmaids" : undefined}
+                          >
                             {(() => {
                               const maxLen = Math.max(bridesmaids.length, groomsmen.length)
                               const rows = []
