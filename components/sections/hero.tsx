@@ -230,8 +230,9 @@ export function Hero() {
     [siteConfig.ceremony.date, siteConfig.wedding.date],
   )
 
+  // Show the guest arrival time; fall back to the ceremony time if none is set
   const ceremonyTimePhrase = formatCeremonyTimePhrase(
-    siteConfig.ceremony.time ?? siteConfig.wedding.time,
+    siteConfig.ceremony.guestsTime || siteConfig.ceremony.time || siteConfig.wedding.time,
   )
   const ceremonyName =
     siteConfig.ceremony.location || siteConfig.wedding.venue

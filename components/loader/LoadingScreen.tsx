@@ -161,7 +161,8 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete, onFade
       '--ls-delay': `${afterHeadlineMs + PLAIN_DATE_OFFSET_MS + step * PLAIN_DATE_STAGGER_MS}ms`,
     }) as React.CSSProperties;
 
-  const ceremonyLine = siteConfig.ceremony.time ?? '';
+  // Show the guest arrival time; fall back to the ceremony time if none is set
+  const ceremonyLine = siteConfig.ceremony.guestsTime || siteConfig.ceremony.time || '';
   const coupleNames = `${siteConfig.couple.groomNickname} & ${siteConfig.couple.brideNickname}`;
 
 
