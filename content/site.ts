@@ -220,7 +220,11 @@ const ATTIRE = {
         {
           role: "Best Man",
           attire: "Off-White Barong Tagalog with Black Trousers and Blue Corsage",
-          colors: [{ name: "Black", hex: "#1E1E1E" }, { name: "Navy Blue", hex: "#1F3A5F" }],
+          colors: [
+            { name: "Off-White", hex: "#EDE3D3" },
+            { name: "Black", hex: "#1E1E1E" },
+            { name: "Navy Blue", hex: "#1F3A5F" },
+          ],
         },
         {
           role: "Groomsmen",
@@ -276,6 +280,8 @@ const ATTIRE = {
       { name: "Yellow", hex: "#F0C04F" },
       { name: "Blue", hex: "#7E9ED3" },
       { name: "Light Blue", hex: "#A9C6EC" },
+      { name: "Off-White", hex: "#EDE3D3" },
+      { name: "Black", hex: "#1E1E1E" },
     ] as AttireColor[],
     ladies: {
       label: "Ladies",
@@ -303,13 +309,21 @@ const ATTIRE = {
       roles: [
         {
           role: "Ninong",
-          attire: "Barong Tagalog + Black Trousers",
-          colors: [{ name: "Yellow", hex: "#F0C04F" }],
+          attire: "Off-White Barong Tagalog with Black Trousers and Yellow Corsage",
+          colors: [
+            { name: "Off-White", hex: "#EDE3D3" },
+            { name: "Black", hex: "#1E1E1E" },
+            { name: "Yellow", hex: "#F0C04F" },
+          ],
         },
         {
           role: "Secondary Sponsors (Male)",
-          attire: "Barong Tagalog + Black Trousers",
-          colors: [{ name: "Blue", hex: "#7E9ED3" }],
+          attire: "Off-White Barong Tagalog with Black Trousers and Blue Corsage",
+          colors: [
+            { name: "Off-White", hex: "#EDE3D3" },
+            { name: "Black", hex: "#1E1E1E" },
+            { name: "Blue", hex: "#7E9ED3" },
+          ],
         },
       ] as AttireRole[],
     },
