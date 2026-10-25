@@ -14,6 +14,8 @@ export type TimelineIconName =
 export type AttireGroupId = "entourage" | "family" | "sponsors" | "guests"
 // A palette color: "#9CAF88" or { name: "Sage", hex: "#9CAF88" }
 export type AttireColor = string | { name: string; hex: string }
+// One role on an attire card; colors → small swatches under the attire text
+export type AttireRole = { role: string; attire: string; colors?: AttireColor[] }
 
 /* ============================================================================
    SOP — CREATING / UPDATING AN INVITATION
@@ -161,6 +163,8 @@ const HASHTAGS = ["#hahaRAPHnasadambHANA"]
 //     label:     e.g. "Ninang", "Bridesmaids", "Ladies"
 //     details:   the dress code text ("" hides this half of the card)
 //     highlight: phrase inside details shown bold + underlined ("" for none)
+//     colors:    swatches under the details ([] for none)
+//     roles:     [{ role, attire, colors }] — colors are the swatches under that role
 // Guest dress code colors — also shown in the "Dress Code" gentle reminder
 const DRESS_CODE_PALETTE: AttireColor[] = [
   { name: "Light Blue", hex: "#BCD8F1" },
@@ -175,16 +179,17 @@ const DRESS_CODE_PALETTE: AttireColor[] = [
 //   Each side (ladies / gentlemen) has a label, an optional intro (details, with an
 //   optional highlighted phrase) and an optional list of roles with what they wear.
 const ATTIRE = {
-  show: ["sponsors", "guests"] as AttireGroupId[],
+  show: ["sponsors", "entourage", "guests"] as AttireGroupId[],
 
   entourage: {
     title: "Entourage",
-    image: "/Details/entourage.png",
+    image: "/Details/attire/entourage.png",
     dressCode: "Formal Attire",
     palette: [
-      { name: "Pastel Yellow", hex: "#F8DE7E" },
-      { name: "Dark Yellow", hex: "#E5A92B" },
-      { name: "Light Blue", hex: "#8CBBE5" },
+      { name: "Pastel Yellow", hex: "#F7DE8F" },
+      { name: "Dark Yellow", hex: "#E0A93A" },
+      { name: "Light Blue", hex: "#A6BEDD" },
+      { name: "Off-White", hex: "#EDE3D3" },
       { name: "Navy Blue", hex: "#1F3A5F" },
       { name: "Black", hex: "#1E1E1E" },
     ] as AttireColor[],
@@ -192,21 +197,41 @@ const ATTIRE = {
       label: "Ladies",
       details: "",
       highlight: "",
+      colors: [] as AttireColor[],
       roles: [
-        { role: "Bride", attire: "White gown and veil with a yellow and blue bouquet." },
-        { role: "Maid of Honor", attire: "Dark yellow long gown with a small yellow and light blue bouquet." },
-        { role: "Bridesmaids", attire: "Pastel yellow gowns with small yellow and light blue bouquets." },
-      ],
+        {
+          role: "Bridesmaids",
+          attire: "Pastel Yellow Gowns with Yellow & Light Blue Bouquets",
+          colors: [{ name: "Pastel Yellow", hex: "#F7DE8F" }, { name: "Light Blue", hex: "#A6BEDD" }],
+        },
+        {
+          role: "Maid of Honor",
+          attire: "Dark Yellow Gown with Yellow & Light Blue Bouquet",
+          colors: [{ name: "Dark Yellow", hex: "#E0A93A" }, { name: "Light Blue", hex: "#A6BEDD" }],
+        },
+      ] as AttireRole[],
     },
     gentlemen: {
       label: "Gentlemen",
       details: "",
       highlight: "",
+      colors: [] as AttireColor[],
       roles: [
-        { role: "Groom", attire: "White suit, black slacks and a black bow tie." },
-        { role: "Best Man", attire: "All-black suit with a navy blue necktie." },
-        { role: "Groomsmen", attire: "Black suit, white shirt, navy blue necktie and a yellow corsage." },
-      ],
+        {
+          role: "Best Man",
+          attire: "Off-White Barong Tagalog with Black Trousers and Blue Corsage",
+          colors: [{ name: "Black", hex: "#1E1E1E" }, { name: "Navy Blue", hex: "#1F3A5F" }],
+        },
+        {
+          role: "Groomsmen",
+          attire: "Off-White Barong Tagalog with Black Trousers and Yellow Corsage",
+          colors: [
+            { name: "Off-White", hex: "#EDE3D3" },
+            { name: "Black", hex: "#1E1E1E" },
+            { name: "Yellow", hex: "#F7DE8F" },
+          ],
+        },
+      ] as AttireRole[],
     },
   },
 
@@ -223,60 +248,99 @@ const ATTIRE = {
       label: "Ladies",
       details: "",
       highlight: "",
+      colors: [] as AttireColor[],
       roles: [
         { role: "Mothers of the Bride & Groom", attire: "Blue long dress." },
         { role: "Sisters", attire: "Yellow gown." },
-      ],
+      ] as AttireRole[],
     },
     gentlemen: {
       label: "Gentlemen",
       details: "",
       highlight: "",
+      colors: [] as AttireColor[],
       roles: [
         { role: "Fathers of the Bride & Groom", attire: "Black suit with a blue necktie." },
         { role: "Brothers", attire: "All-black suit and necktie." },
-      ],
+      ] as AttireRole[],
     },
   },
 
   sponsors: {
-    title: "Principal Sponsors",
-    image: "/Details/sponsors.png",
+    title: "Principal & Secondary Sponsors",
+    image: "/Details/attire/sponsors.png",
     dressCode: "Formal Attire",
     palette: [
-      { name: "Gold", hex: "#D4B25C" },
-      { name: "Black", hex: "#1E1E1E" },
+      { name: "Champagne", hex: "#EBD0BA" },
+      { name: "Beige", hex: "#D6AE8A" },
+      { name: "Yellow", hex: "#F0C04F" },
+      { name: "Blue", hex: "#7E9ED3" },
+      { name: "Light Blue", hex: "#A9C6EC" },
     ] as AttireColor[],
     ladies: {
-      label: "Ninang",
-      details: "Gold long gown.",
-      highlight: "Gold long gown",
-      roles: [] as { role: string; attire: string }[],
+      label: "Ladies",
+      details: "",
+      highlight: "",
+      colors: [] as AttireColor[],
+      roles: [
+        {
+          role: "Ninang",
+          attire: "Champagne or Beige Long Gown",
+          colors: [{ name: "Champagne", hex: "#EBD0BA" }, { name: "Beige", hex: "#D6AE8A" }],
+        },
+        {
+          role: "Secondary Sponsors (Female)",
+          attire: "Light Blue Long Dress",
+          colors: [{ name: "Light Blue", hex: "#A9C6EC" }],
+        },
+      ] as AttireRole[],
     },
     gentlemen: {
-      label: "Ninong",
-      details: "All-black suit and necktie.",
-      highlight: "All-black suit",
-      roles: [] as { role: string; attire: string }[],
+      label: "Gentlemen",
+      details: "",
+      highlight: "",
+      colors: [] as AttireColor[],
+      roles: [
+        {
+          role: "Ninong",
+          attire: "Barong Tagalog + Black Trousers",
+          colors: [{ name: "Yellow", hex: "#F0C04F" }],
+        },
+        {
+          role: "Secondary Sponsors (Male)",
+          attire: "Barong Tagalog + Black Trousers",
+          colors: [{ name: "Blue", hex: "#7E9ED3" }],
+        },
+      ] as AttireRole[],
     },
   },
 
   guests: {
     title: "Guests",
-    image: "/Details/Guest.png",
+    image: "/Details/attire/guest.png",
     dressCode: "Semi-Formal Attire",
     palette: DRESS_CODE_PALETTE,
     ladies: {
-      label: "Ladies",
-      details: "Floral long dress, or a long dress in light blue, yellow or green.",
-      highlight: "long dress",
-      roles: [] as { role: string; attire: string }[],
+      label: "Female Guests",
+      details: "Floral long dress (in shades of light blue, light yellow or light green) and/or light yellow, light blue long dress",
+      highlight: "Floral long dress",
+      colors: [
+        { name: "Light Blue", hex: "#B7CCE3" },
+        { name: "Light Yellow", hex: "#F8DFA0" },
+        { name: "Light Green", hex: "#B9C49B" },
+      ] as AttireColor[],
+      roles: [] as AttireRole[],
     },
     gentlemen: {
-      label: "Gentlemen",
-      details: "Long-sleeve polo in light blue, yellow or green with black slacks.",
-      highlight: "long-sleeve polo",
-      roles: [] as { role: string; attire: string }[],
+      label: "Male Guests",
+      details: "Long sleeve polo (light blue, light yellow or light green) with black slacks (semi-formal)",
+      highlight: "Long sleeve polo",
+      colors: [
+        { name: "Light Blue", hex: "#B7CCE3" },
+        { name: "Light Yellow", hex: "#F8DFA0" },
+        { name: "Light Green", hex: "#B9C49B" },
+      ] as AttireColor[],
+      roles: [] as AttireRole[],
     },
   },
 }

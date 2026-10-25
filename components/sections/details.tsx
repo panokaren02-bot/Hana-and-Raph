@@ -422,14 +422,41 @@ function highlightPhrase(text: string, phrase?: string): ReactNode {
   )
 }
 
+// Small round swatches under an attire line (e.g. Ninang: Champagne • Beige)
+function ColorDots({ colors }: { colors?: readonly AttireColor[] }) {
+  const palette = toPaletteColors(colors ?? [])
+  if (palette.length === 0) return null
+  return (
+    <div
+      className="mt-1.5 flex items-center justify-center gap-1.5 sm:mt-2 sm:gap-2"
+      role="img"
+      aria-label={`Colors: ${palette.map((c) => c.name || c.hex).join(", ")}`}
+    >
+      {palette.map((color, i) => (
+        <span
+          key={`${color.hex}-${i}`}
+          className="h-4 w-4 rounded-full sm:h-5 sm:w-5"
+          style={{
+            backgroundColor: color.hex,
+            boxShadow: "0 0 0 2px #FFFFFF, 0 0 0 3px color-mix(in srgb, var(--color-motif-medium) 60%, transparent)",
+          }}
+          title={color.name || color.hex}
+        />
+      ))}
+    </div>
+  )
+}
+
 function AttirePaletteGroup({
   label,
   description,
+  colors,
   roles = [],
 }: {
   label: string
   description?: ReactNode
-  roles?: readonly { role: string; attire: string }[]
+  colors?: readonly AttireColor[]
+  roles?: readonly { role: string; attire: string; colors?: readonly AttireColor[] }[]
 }) {
   return (
     <div className="mx-auto w-full max-w-md space-y-1.5 sm:space-y-2">
@@ -448,9 +475,10 @@ function AttirePaletteGroup({
           {description}
         </p>
       ) : null}
+      <ColorDots colors={colors} />
       {roles.length > 0 && (
-        <ul className="space-y-1.5 sm:space-y-2">
-          {roles.map(({ role, attire }) => (
+        <ul className="space-y-3 sm:space-y-4">
+          {roles.map(({ role, attire, colors: roleColors }) => (
             <li key={role} className="text-center">
               <p
                 className={`${cinzel.className} text-[0.6rem] font-semibold uppercase leading-tight tracking-[0.12em] sm:text-[0.68rem]`}
@@ -461,6 +489,7 @@ function AttirePaletteGroup({
               <p className="font-goudy-italic text-[0.78rem] leading-snug sm:text-sm" style={{ color: C.body }}>
                 {attire}
               </p>
+              <ColorDots colors={roleColors} />
             </li>
           ))}
         </ul>
@@ -1053,6 +1082,7 @@ export function Details() {
                         key={half.label}
                         label={half.label}
                         description={half.details.trim() ? highlightPhrase(half.details, half.highlight) : undefined}
+                        colors={half.colors}
                         roles={half.roles}
                       />
                     ))}
