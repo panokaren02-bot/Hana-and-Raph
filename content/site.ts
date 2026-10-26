@@ -572,7 +572,7 @@ export const siteConfig = {
         ],
       },
       {
-        date: "February 2024",
+        date: "October 2021",
         title: "Worth the Wait",
         theme: "light" as const,
         layout: "image-left" as const,
